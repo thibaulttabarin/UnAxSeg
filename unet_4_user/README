@@ -1,0 +1,54 @@
+#############################################################
+### Instruction to setup the environment and use unet_axon_seg analysis
+# use python 3.6
+# Notes and comments : everytime you have "$" means command line in the terminal window, everytime "#" means comments, instructions or explaintions
+# everything should be done with command line in a terminal
+# gpu : if you have gpu and the correct driver and libraries to run tensorflow_gpu 1.8 use unet_4_user_gpu.yml to create environment  otherwise use unet_4_user
+
+# Create an conda environment from unet using yml file
+# yml file contains all you need, to set an environment allowing the unet to work
+# you need anaconda install:
+
+# to test if it there
+$ conda --version
+# in my case I get: conda 4.5.10 (newer versions of conda should work, older version may not)
+
+# You need the folder unet_4_user containing:
+demo_multi_images
+Apply_model.py
+losses.py
+Multi_file_Complete_Analysis_without_gt.ipynb
+Myelin_segmentation.py
+Performance_measurement.py
+README
+test_model_06-03-19.h5
+unet_user.yml
+Utility.py
+utility_plot.py
+
+# Create a new environment
+
+$ cd /unet_4_user
+$ conda env create -f unet_4_user.yml # without gpu
+$ conda env create -f unet_4_user_gpu.yml # with gpu
+
+
+# Before creating the environment you can change the name of the future environment by openimg .yml (with text editor) and updating the first line. Otherwise the env_name will be set by default to the name present in yml file (currently unet_4_user)
+
+# after creation of the environment you have to activate it every time you want to use it
+$ source activate unet_4_user
+$ jupyter notebook
+
+this should open a chrome (or other internet browser)
+navigate to /unet_4_user/Multi_file_Complete_Analysis_without_gt.ipynb
+use the jupyter notebook : read the instruction and comments
+run the code cells by using <control> +  <enter> or <shift> + <enter>
+
+# leave the environment
+$ source desactivate
+
+# remove the environment
+############
+# leave the environment
+$ source desactivate
+$ conda remove --name unet_4_user --all
