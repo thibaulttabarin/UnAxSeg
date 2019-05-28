@@ -20,58 +20,33 @@ from tkinter import Tk
 
 from keras.models import load_model
 
-from Utility import list_patches
+from Utility import list_patches, Import_image
 import losses
 #img_size = 256
 #model = Unet_tt_v2(img_size)
 #save_weight_path = '/home/thibault/Documents/Data/ADS/Training_v3_256/unet_v3_6.h5'
 #model.load_weights(save_weight_path)
 
-def prepare_(model_path = 'choose', test_image_path = 'choose'):
+def Import_model(model_path = ''):
     '''
-    Prepare the model and the image to apply the model to the image
+    import and load the model return a ready to use model 
     input :
-        + model_path : location of the model or 'choose' defualt will open an askfile window
-        + test_image_path : same
+        + model_path : location of the model or anything else (default : '') will open an askfile window ''
     return :
         + 'model' as keras model
-        + 'img' as PIL image
-        + Folder_path : location of the test image (to save the result in the same location)
     '''
-    #from PIL import Image
-    Image.MAX_IMAGE_PIXELS = None
     
-    img = None
     model = None
-    folder_path = None
     
-    if model_path == 'choose':
+    if model_path is None or not os.path.isfile(model_path):
         root = Tk()
         root.withdraw()
-        model_path =  filedialog.askopenfilename(initialdir = './',\
+        model_path =  filedialog.askopenfilename(initialdir = './',filetypes = [("h5 model",".h5")],\
                                               title = 'select a model .h5')
-    
-    if os.path.isfile(model_path):
-        model = load_model(model_path, custom_objects={'softmax_dice_loss_2': losses.softmax_dice_loss_2})
-    #model_path = '/home/thibault/Documents/Data/ADS/Model_Unet_tt/2019-02-04_1604.h5'
-    #model = load_model(model_path)    
+    elif os.path.isfile(model_path):
+        model = load_model(model_path, custom_objects={'softmax_dice_loss_2': losses.softmax_dice_loss_2}) 
         
-    
-    if test_image_path == 'choose':
-        root = Tk()
-        root.withdraw()
-        test_image_path =  filedialog.askopenfilename(initialdir = './',\
-                                                      title = 'select image RGB to test .png or .jpg.')
-        
-    if not test_image_path == None and os.path.isfile(test_image_path):
-        img = Image.open(test_image_path)  
-    #path_to_test_image ='/home/thibault/Documents/Data/ADS/Training_256_v5/Gray/Raw_data/Test/sample3/' 
-    # import the image as PIL image
-        folder_path, image_name = os.path.split(test_image_path)
-    
-    #img = ImageOps.equalize(img)
-
-    return img, model, folder_path
+    return model
 
 
 ###################################################
@@ -83,7 +58,7 @@ def Unet_by_patches(img, model, patch_size=256, overlap=64, RGB = True):
     routine to process large image patch by patch.
     input: img = image input format is Image PIL
             model = keras model loaded from keras.load_model function and model_xxx.h5
-            patch_size = size of input image in pixel
+            patch_size = size of input image in pixel (correspond to the model input/output)
             overlap = overlap between patches to reduce boundary effect during prediction
     '''
     if RGB:
@@ -101,36 +76,39 @@ def Unet_by_patches(img, model, patch_size=256, overlap=64, RGB = True):
         
         box_ = (e[1],e[0],e[1]+patch_size,e[0]+patch_size)
         patch = img.crop(box_)
+        # convert PIL image to np.array
         A = np.array(patch)
         
         # don't process patch with only background
         if sum(A.flatten()) > 10*len(A.flatten()):
             
-            A = exposure.equalize_adapthist(A,clip_limit=0.01)
-        
+            A = exposure.equalize_adapthist(A,clip_limit=0.01)        
             A = A[np.newaxis,:,:,np.newaxis]
             pred_2 = model.predict(A)[0]
         
+            # Reconstruct the image on the fly
             h, w= map(ind_0,e)
             pred_image[e[0]+h:e[0] + patch_size , e[1]+w:e[1] + patch_size,:]=pred_2[h:, w:, :]
     
     return pred_image
 
 
-
 def main():
     
-    img, model, path_to_test_image = prepare_()
+    model = Import_model()
+    img, filename = Import_image()
     
-    pred_image = Unet_by_patches(img,model, patch_size = 256, overlap=64)
+    pred_image = Unet_by_patches(img, model, patch_size = 256, overlap=64)
         
     mask = np.argmax(pred_image, axis=-1)
-     
+    
     return pred_image, mask
 
-def save_prediction(pred_image,save_name = '/home/thibault/Documents/mask_pred.png'):    
-    # save the axon mask as image
-    import skimage.io as io
-    
-    #mask_ = 255*np.array(mask==2, dtype= np.uint8)
+def save_prediction(pred_image, save_name = 'pred.png'):    
+
     io.imsave(save_name, pred_image)
+
+def save_mask(mask, save_name = 'mask.png'):    
+    # save the mask as an image
+    mask=127*mask.astype(np.uint8)
+    io.imsave(save_name, mask)

@@ -22,7 +22,7 @@ from natsort import natsorted
 from tkinter import filedialog
 from tkinter import Tk
 
-import sys #sys.path.insert(0,'/home/thibault/axondeepseg')
+import sys 
 import os
 
 
@@ -84,24 +84,41 @@ def Image_2_np(filename = None, mode ='L', title = 'select image to test .png.')
     
     return img, folder_path
 
-def Image_import(filename = None):
+def Import_image(filename = None):
     '''
-    Open an image directly into an Image PIL format. 
-    input: filename = local of the image to open, 
-    Output : return img as PIL.Image and the file location.
+    Open an image directly into an Image PIL format:
+        
+        + input: filename = location of the image to open if nothing or not file open dialogue window 
+        + Output: img as PIL.Image, file location.
     
     '''    
-    if filename is None: 
+    if filename is None or not os.path.isfile(filename): 
         
         root = Tk()
         root.withdraw()# we don't want a full GUI, so keep the root window from appearing
-        filename= filedialog.askopenfilename(initialdir = "./",\
+        filename= filedialog.askopenfilename(initialdir = "./",filetypes = [("image files",(".jpg",".png"))],\
                                                title='Select image from histology  .jpg or .png')
     Image.MAX_IMAGE_PIXELS = None
     img =Image.open(filename)
 
-    # folder_path, image_name = os.path.split(filename)
     return img, filename
+
+
+def get_list_img(ext = '.jpg'):
+    '''
+    get the list of the image to analyse
+    input  : Choose the extension of the images to analyse
+    output : return the list of the absolute path of image to analyse
+    
+    '''
+    root = Tk()
+    root.withdraw()# we don't want a full GUI, so keep the root window from appearing
+    dir_name =  filedialog.askdirectory(initialdir = './',\
+                                                      title = 'choose directory containing image to analyse') 
+
+    img_list = natsorted(glob.glob( dir_name + "/*"+ext)) # sort the file_name with the extension "ext" in alphanumeric order 
+    
+    return img_list, dir_name
 
 ###################################################################
 # Class to crop a big image
@@ -170,22 +187,6 @@ class Mask_Poly_FromImage(object):
         crop[mask] = self.image[mask]
         self.crop = crop
 
-
-def get_list_img_to_analyse(ext = '.jpg'):
-    '''
-    get the list o fthe image to analyse
-    input  : Choose the extension of the images to analyse
-    output : return the list of the absolute path of image to analyse
-    
-    '''
-    root = Tk()
-    root.withdraw()# we don't want a full GUI, so keep the root window from appearing
-    dir_name =  filedialog.askdirectory(initialdir = './',\
-                                                      title = 'choose directory containing image to analyse') 
-
-    img_list = natsorted(glob.glob( dir_name + "/*"+ext)) # sort the file_name in alphanumeric order
-    
-    return img_list, dir_name
 
 
 
