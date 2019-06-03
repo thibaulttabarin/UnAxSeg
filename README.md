@@ -1,5 +1,5 @@
 # UnAxSeg
-My own version of AxonDeepSeg.
+My own version of [AxonDeepSeg](https://axondeepseg.readthedocs.io).
 
 In this repository, I have reimplemented AxonDeepSeg from Zaimi, A., Wabartha, M., Herman, V., Antonsanti, P.-L., Perone, C. S., & Cohen-Adad, J. (2018). 
 AxonDeepSeg: automatic axon and myelin segmentation from microscopy data using convolutional neural networks. Scientific Reports, 8(1), 3816. 
