@@ -6,7 +6,7 @@ AxonDeepSeg: automatic axon and myelin segmentation from microscopy data using c
 Link to paper: https://doi.org/10.1038/s41598-018-22181-4.
 
 The implementation is in keras and the model is training for Light microscopy data (the input data are RGb although we convert
-the image in graysacle)
+the images in grayscale, very early in the pipeline)
 To start, use the jupyter notebook.
 
 For the install use the anaconda and the .yml file... Use the README.txt file for complete instruction for the install
