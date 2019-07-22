@@ -181,20 +181,20 @@ def MyelinSeg_by_patch (image, L_pos, overlap_value, scw):
 
 #############################################################################################
 #############################################################################################
-def clean_up(recons_img, image):
+def clean_up(recons_img, mask):
     
     '''
     select fiber that contain myelin + axon
     
     input : recons_img = image of labeled fiber
-            image = mask
+            mask = mask (bkg=0, myelin=127, axon=255)
     output : regionprops list for axons and fibers
     '''
     recons_img = remove_small_objects(recons_img, min_size=16)
     List_fiber_2 = regionprops (recons_img)
     
     # exclude fiber withou axon
-    axon = image > 200
+    axon = mask > 200
     recons_img_f =  np.zeros_like(recons_img, dtype = np.int32)
     recons_img_a =  np.zeros_like(recons_img, dtype = np.int32)
     i=1

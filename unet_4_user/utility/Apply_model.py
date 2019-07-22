@@ -7,6 +7,7 @@ Created on Wed Feb 20 17:26:27 2019
 """
 
 import os
+import sys
 from PIL import Image
 from PIL import ImageOps
 import numpy as np
@@ -20,8 +21,13 @@ from tkinter import Tk
 
 from keras.models import load_model
 
-from .Utility import list_patches, Import_image
-from . import losses
+path =  os.path.dirname(os.path.abspath(__file__)) 
+if not path in sys.path:
+    sys.path.append(path)
+    
+from Utility import list_patches, Import_image
+import losses
+
 #img_size = 256
 #model = Unet_tt_v2(img_size)
 #save_weight_path = '/home/thibault/Documents/Data/ADS/Training_v3_256/unet_v3_6.h5'
@@ -92,6 +98,60 @@ def Unet_by_patches(img, model, patch_size=256, overlap=64, RGB = True):
     
     return pred_image
 
+def Unet_by_patches_2(img, model, patch_size=256, overlap=64, RGB = True, verbose=True):
+    
+    '''
+    routine to process large image patch by patch. Same as Unet_by_patches without the equalize_adapthist
+    input: img = image input format is Image PIL
+            model = keras model loaded from keras.load_model function and model_xxx.h5
+            patch_size = size of input image in pixel (correspond to the model input/output)
+            overlap = overlap between patches to reduce boundary effect during prediction
+    '''
+    if RGB:
+        img =img.convert(mode ='L')
+        img = ImageOps.invert(img)
+    
+    img_shape = img.size[::-1] # inverse image size because difference convention between numpy and PIL
+    L_pos = list_patches(img_shape, overlap_value=overlap, scw=patch_size)
+    pred_image=np.zeros(img_shape + (3,))
+        
+    ind_0= lambda x : 0 if x==0 else 64
+
+    pbar =L_pos
+    if verbose: pbar = tqdm(L_pos)
+    for i, e in enumerate (pbar):
+        
+        box_ = (e[1],e[0],e[1]+patch_size,e[0]+patch_size)
+        patch = img.crop(box_)
+        # convert PIL image to np.array
+        A = np.array(patch)
+        
+        # don't process patch with only background
+        if sum(A.flatten()) > 10*len(A.flatten()):
+            
+            #A = exposure.equalize_adapthist(A,clip_limit=0.01)        
+            A = A[np.newaxis,:,:,np.newaxis]
+            pred_2 = model.predict(A)[0]
+        
+            # Reconstruct the image on the fly
+            h, w= map(ind_0,e)
+            pred_image[e[0]+h:e[0] + patch_size , e[1]+w:e[1] + patch_size,:]=pred_2[h:, w:, :]
+    
+    return pred_image
+
+# Get the axon mask from the prediction
+def Create_mask(prediction, ch =2):
+    '''
+    From the prediction create a mask for a selected channel
+    input :
+        + prediction : output of unet (should be preferably softmax, with 3 channels)
+        + ch : selected channel (background: 0, myelin: 1, axon: 2)
+    output : 
+        + mask form the selected channel
+    '''
+    mask = np.argmax(prediction, axis=-1)
+    mask_ch = mask== ch
+    return mask_ch
 
 def main():
     

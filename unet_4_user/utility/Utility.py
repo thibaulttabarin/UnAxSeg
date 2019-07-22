@@ -84,7 +84,7 @@ def Image_2_np(filename = None, mode ='L', title = 'select image to test .png.')
     
     return img, folder_path
 
-def Import_image(filename = None):
+def Import_image(filename = None, title = 'select image to test .png or .jpg.'):
     '''
     Open an image directly into an Image PIL format:
         
@@ -97,7 +97,7 @@ def Import_image(filename = None):
         root = Tk()
         root.withdraw()# we don't want a full GUI, so keep the root window from appearing
         filename= filedialog.askopenfilename(initialdir = "./",filetypes = [("image files",(".jpg",".png"))],\
-                                               title='Select image from histology  .jpg or .png')
+                                               title=title)
     Image.MAX_IMAGE_PIXELS = None
     img =Image.open(filename)
 

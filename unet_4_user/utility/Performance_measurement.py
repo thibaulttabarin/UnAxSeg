@@ -17,7 +17,7 @@ def Fiber_morpho(fiber_label, axon_label, pixel_size=0.11):
     regions_fiber = measure.regionprops(fiber_label)
     regions_axon = measure.regionprops(axon_label)
     
-    features = ['diam_f', 'diam_a', 'myelin_thick', 'gratio']
+    features = ['diam_f', 'diam_a', 'myelin_thick', 'gratio', 'area_f', 'area_a']
     fiber_df = pd.DataFrame(columns=features)
     
     for i, fiber in enumerate(regions_fiber):
@@ -27,7 +27,7 @@ def Fiber_morpho(fiber_label, axon_label, pixel_size=0.11):
         diameter_a = pixel_size*2*np.sqrt(axon.area/math.pi) # diameter in pixel
         myelin_thick = (diameter_f-diameter_a)/2
         gratio = diameter_a/diameter_f
-        fiber_df.loc[i] = [diameter_f, diameter_a, myelin_thick, gratio]
+        fiber_df.loc[i] = [diameter_f, diameter_a, myelin_thick, gratio, fiber.area, axon.area]
         
     return fiber_df
 
