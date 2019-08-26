@@ -47,4 +47,41 @@ Recall, Precision, Image_Dice = calculate_metrics(pred_mask, gt_mask)
 evatuation_sess = Evaluation(axon_mask,gt_mask)
 evatuation_sess.Metric.print_metric()
 
+#########################################################################
+#########################################################################
+from unet_4_user.utility.utility_plot import *
+
+
+# Choose the feature you want to plot
+feature = 'Axon area' # from 'Axon diameter', 'Gratio' or 'Myelin Thickness'
+
+#measured_option = {'Axon diameter':'diam_a', 'Gratio':'gratio', 'Myelin Thickness':'myelin_thick'}
+measured_option = {'Axon area':'area'}
+
+pred = 'pred_'+ measured_option[feature]
+gt = 'gt_'+ measured_option[feature]
+measured = feature
+# define unit: '${\mu}m$' for Axon diameter and Myelin Thickness
+#                '' for g ratio
+unit = 'pixel'
+
+# plot 1
+title_1 = 'Predicted {0} distribution \n TP and FP'. format(measured)
+x_label_1 = 'Predicted {0} {1}'. format(measured, unit)
+y_label_1 = 'Percentage of fiber'
+
+pred_xx_TP =df.loc[df['true_positive']==1, pred]
+pred_xx_FP =df.loc[df['true_positive']==0, pred]
+pred_xx = df[pred]
+bins,fig = bar_plot_dist_2_categ(pred_xx, pred_xx_TP, pred_xx_FP, 
+                                 legend=('TP','FP'), bins=50, 
+                                 display_max=True, figsize=(12,9))
+
+plt.xlabel(x_label_1, fontsize=16); plt.ylabel(y_label_1, fontsize=16)
+plt.title(title_1, fontsize=16)
+plt.show()
+
+
+
+
 

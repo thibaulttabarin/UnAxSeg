@@ -140,13 +140,10 @@ def hard_dice_coef(y_true, y_pred, smooth=1e-3):
 
 
 ###################################################################
-# Class to crop a big image
+# Class to correct the image
 class Correct_Segmentation(object):
     '''
-    Class object used to create mask for big image
-    When the object is created from an image, the image is resize (smaller size) to create and manipulate the mask faster
-    the function  get_nask create a figure with cursor to draw a polygone region of interest
-    the function cropping 
+    Class object 
     
     '''
 
@@ -174,7 +171,6 @@ class Correct_Segmentation(object):
         axon_df = compare_axon_pred_gt(pred_regions, gt_regions)
     
         # Calculate performance metric
-        
         
         self.dataframe=axon_df
         
@@ -327,12 +323,6 @@ correction_session.Metric.print_metric()
 correction_session.Create_plot()
 
 
-
-
-
-
-
-
 #############################################################################################################
 # Predicted axon
 # Prepare label and regionprops 
@@ -376,10 +366,6 @@ ax[2].scatter(TP_arr[:,1],TP_arr[:,0], s=3, color='r')
 ax[2].scatter(FN_arr[:,1],FN_arr[:,0], s=3, color='k')
 
 
-
-#############################################################################################################
-# interactive correction
-#############################################################################################################
 
 
 

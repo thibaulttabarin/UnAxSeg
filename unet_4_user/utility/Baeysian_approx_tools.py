@@ -28,7 +28,7 @@ from keras.callbacks import TensorBoard
 #if not path in sys.path:
 #    sys.path.append(path)
 
-from utility.Apply_model import Unet_by_patches_2
+from Apply_model import Unet_by_patches_2
 
 
 def unet_Bays_Approx(img_size, dropout= True):
