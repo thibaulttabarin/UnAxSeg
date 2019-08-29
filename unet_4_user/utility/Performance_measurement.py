@@ -11,7 +11,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import math
 
-
 def Fiber_morpho(fiber_label, axon_label, pixel_size=0.11):
     
     regions_fiber = measure.regionprops(fiber_label)
@@ -30,7 +29,6 @@ def Fiber_morpho(fiber_label, axon_label, pixel_size=0.11):
         fiber_df.loc[i] = [diameter_f, diameter_a, myelin_thick, gratio, fiber.area, axon.area]
         
     return fiber_df
-
 
 def Fiber_analysis(gt_fiber, pred_fiber, gt_axon, pred_axon, min_area=16, pixel_size = 0.11):
     """

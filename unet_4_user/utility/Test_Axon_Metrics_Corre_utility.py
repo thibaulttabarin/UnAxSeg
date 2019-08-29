@@ -4,84 +4,75 @@
 Created on Thu Aug  1 13:01:15 2019
 
 @author: thibault
-Test for Metrics and correction utility
+Correct the ground truth using the prediction.
+In some case the prediction detects axons that have been forgotten by the expert during the manual segmentation.
+using this pipeline you can correct semi automatically the ground truth during a second step using gimp you will able to fine tune
+the correction. this pipeline will work better using spyder.
+run this code line by line
+
 """
-
-
-from Axon_Metrics_Correction_utility import *
-from Utility import Import_image, Image_2_np
-
-from Apply_model import losses,  Unet_by_patches_2
-from keras.models import load_model
-
+import os
+from unet_4_user.utility.Axon_Metrics_Correction_utility import *
+from unet_4_user.utility.Utility import Import_image, Image_2_np
+from unet_4_user.utility.ImageIO import *
 
 #############################################################################################################
-model_path = '/home/thibault/Documents/Thibault_Python_dev/UnAxSeg/unet_4_user/Models/2019-06-18_1018.h5'
-model_ = load_model(model_path, custom_objects={'softmax_dice_loss_2': losses.softmax_dice_loss_2,
-                                               'dice_coef_ch1':losses.dice_coef_ch1,
-                                              'dice_coef_ch2':losses.dice_coef_ch2})
+#  import the prediction 
+experience_path = '/test_share/unet_experiments/evaluation_experiments/dice_axon_vs_myelin_experiments/\
+loss_dice_50_ce_50_axon_10_myelin_90_aug_thibault_expand_model_unet_normalized'
 
-path_img_test = '/home/thibault/Documents/Data/ADS/18_06_CC_S5_ADS_Training/manual_segmentation/20190626__18_06_CC_S5_good_2_croped.jpg'
-path_gt_mask = '/home/thibault/Documents/Data/ADS/18_06_CC_S5_ADS_Training/manual_segmentation/20190626__18_06_CC_S5_good_2_croped_full_Seg.png'
-# Import image and ground truth mask
-img_test, test_path = Import_image(filename = path_img_test ,title='select image to predict')
-gt_mask, _ = Image_2_np(filename = path_gt_mask, title='select ground truth mask')
+original_image = '00007_image_original.png'
+original_path = os.path.join(experience_path, original_image)
+original_img, _ = Import_image(filename = original_path ,title='select image to predict')
+original_img = read_input_image(original_path, output_mode='gray')
 
-# Predict
-pred_ = Unet_by_patches_2(img_test, model_, patch_size=256, overlap=64, RGB = True, verbose = True)
-mask = np.argmax(pred_, axis=-1)
-axon_mask = mask==2
-gt_mask = gt_mask > 200
+pred_mask_image = '00007_image_prediction_all.png'
+pred_mask_path = os.path.join(experience_path, pred_mask_image)
+
+gt_mask_image = '00007_image_ground_truth_axon_only.png'
+gt_mask_path =os.path.join(experience_path, gt_mask_image)
+
+##########################################################################################################
+#
+original_img = read_input_image(original_path, output_mode='gray')
+
+pred_mask =read_mask_3c(pred_mask_path)
+pred_mask_axon = pred_mask ==2
+
+gt_mask = read_mask_3c(gt_mask_path)
+gt_mask_axon = gt_mask ==2
 
 #############################################################################################################
-correction_session = Correct_Segmentation(img_test, axon_mask, gt_mask)
+# correct the gt_mask
+# Instruction 
+# white dots true positive
+# red dots Faslse positive (detected by the network not by expert)
+# black dots False negative (detected by expert not by the network)
+# tool in the upper left corner to nagivate zoom the image
+# left : original image, middle prediction, right ground truth
+# to add a false positive to th ground truth double click on the axon
 
+correction_session = Correct_Segmentation(original_img, pred_mask_axon, gt_mask_axon)
+correction_session.Create_plot()
 
-pred_mask = correction_session.prediction
-gt_mask = correction_session.gt
+#############################################################################################################
+# save the corrected mask
+path_to_save =""
+name = 'mask_axon_correct'
+mask_save_path = os.path.join(path_to_save,name)
+correction_session.save_corrected_gt(mask_save_path)
 
-Recall, Precision, Image_Dice = calculate_metrics(pred_mask, gt_mask)
+#############################################################################################################
+# 
+'''
+Open the newly create corrected mask in gimp
+the old axon are in gray
+the newly added axons are in white 
+and then you can edit the mask in gimp
+'''
 
+################
 
-##############################################################################################################
-evatuation_sess = Evaluation(axon_mask,gt_mask)
-evatuation_sess.Metric.print_metric()
-
-#########################################################################
-#########################################################################
-from unet_4_user.utility.utility_plot import *
-
-
-# Choose the feature you want to plot
-feature = 'Axon area' # from 'Axon diameter', 'Gratio' or 'Myelin Thickness'
-
-#measured_option = {'Axon diameter':'diam_a', 'Gratio':'gratio', 'Myelin Thickness':'myelin_thick'}
-measured_option = {'Axon area':'area'}
-
-pred = 'pred_'+ measured_option[feature]
-gt = 'gt_'+ measured_option[feature]
-measured = feature
-# define unit: '${\mu}m$' for Axon diameter and Myelin Thickness
-#                '' for g ratio
-unit = 'pixel'
-
-# plot 1
-title_1 = 'Predicted {0} distribution \n TP and FP'. format(measured)
-x_label_1 = 'Predicted {0} {1}'. format(measured, unit)
-y_label_1 = 'Percentage of fiber'
-
-pred_xx_TP =df.loc[df['true_positive']==1, pred]
-pred_xx_FP =df.loc[df['true_positive']==0, pred]
-pred_xx = df[pred]
-bins,fig = bar_plot_dist_2_categ(pred_xx, pred_xx_TP, pred_xx_FP, 
-                                 legend=('TP','FP'), bins=50, 
-                                 display_max=True, figsize=(12,9))
-
-plt.xlabel(x_label_1, fontsize=16); plt.ylabel(y_label_1, fontsize=16)
-plt.title(title_1, fontsize=16)
-plt.show()
-
-
-
-
+read_input_image()
+read_input_image
 

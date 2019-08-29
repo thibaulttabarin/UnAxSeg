@@ -6,7 +6,6 @@ Created on Mon Jul 29 11:42:07 2019
 @author: thibault
 Utility for metric and ground truth correction for axon
 
-
 """
 
 import os 
@@ -15,12 +14,12 @@ import math
 import matplotlib.pylab as plt
 import numpy as np
 import pandas as pd
-
+from PIL import Image
 from skimage.morphology import remove_small_objects, remove_small_holes
 from skimage import measure
 from skimage.measure import regionprops
 from scipy import ndimage as ndi
-
+from unet_4_user.utility.ImageIO import *
 
 #############################################################################################################
 ####### Function for gt vs pred comparison and performance metrics
@@ -160,7 +159,7 @@ def calculate_metrics(pred_mask, gt_mask):
     
 class Correct_Segmentation(object):
     '''
-    Class object used to create mask for big image
+    Class object used to create a new mask 
     When the object is created from an image, the image is resize (smaller size) to create and manipulate the mask faster
     the function  get_nask create a figure with cursor to draw a polygone region of interest
     the function cropping 
@@ -244,16 +243,16 @@ class Correct_Segmentation(object):
         fig, ax = plt.subplots(ncols=3, nrows=1, sharex=True, sharey=True, figsize=(15,10))
         
         self.img_0= ax[0].imshow(np.array(img_test))
-        ax[0].scatter(TP_arr[:,1],TP_arr[:,0], s=3, color='r')
-        ax[0].scatter(FP_arr[:,1],FP_arr[:,0], s=3, color='g')
+        ax[0].scatter(TP_arr[:,1],TP_arr[:,0], s=3, color='w')
+        ax[0].scatter(FP_arr[:,1],FP_arr[:,0], s=3, color='r')
         ax[0].scatter(FN_arr[:,1],FN_arr[:,0], s=3, color='k')
 
         self.img_1 = ax[1].imshow(data_prediction)
-        ax[1].scatter(TP_arr[:,1],TP_arr[:,0], s=3, color='r')
-        ax[1].scatter(FP_arr[:,1],FP_arr[:,0], s=3, color='g')
+        ax[1].scatter(TP_arr[:,1],TP_arr[:,0], s=3, color='w')
+        ax[1].scatter(FP_arr[:,1],FP_arr[:,0], s=3, color='r')
     
         ax[2].imshow(data_gt)
-        ax[2].scatter(TP_arr[:,1],TP_arr[:,0], s=3, color='r')
+        ax[2].scatter(TP_arr[:,1],TP_arr[:,0], s=3, color='w')
         ax[2].scatter(FN_arr[:,1],FN_arr[:,0], s=3, color='k')
         
 
@@ -307,6 +306,21 @@ class Correct_Segmentation(object):
         myobj = self.fig.axes[2]
         myobj.imshow(correct_gt)
 
+    def save_corrected_gt(self, path):
+        
+        corrected_gt = self.corrected_gt
+        
+        Image.MAX_IMAGE_PIXELS = None
+    
+        A = corrected_gt.astype(np.uint8)
+        A[A==1] =128
+        A[A==2] =255
+        
+        A = Image.fromarray(A)
+        A = A.convert(mode='L')
+        path= path+ ".png"
+        A.save(path)
+        
 ##############################################################################
 # Class to evaluate the performance  of the unet
 class Evaluation(object):

@@ -27,7 +27,6 @@ Utility.py
 utility_plot.py
 
 # Create a new environment
-
 $ cd /unet_4_user
 $ conda env create -f unet_4_user.yml # without gpu
 $ conda env create -f unet_4_user_gpu.yml # with gpu
@@ -35,9 +34,18 @@ $ conda env create -f unet_4_user_gpu.yml # with gpu
 
 # Before creating the environment you can change the name of the future environment by openimg .yml (with text editor) and updating the first line. Otherwise the env_name will be set by default to the name present in yml file (currently unet_4_user)
 
-# after creation of the environment you have to activate it every time you want to use it
+# after creation of the environment
 $ source activate unet_4_user
+$ cd ~/location_containing_unet_4_user # you should setup.py
+$ pip install -e .
+
+# you have to activate it every time you want to use it
+$ source activate unet_4_user
+
+# use jupyter or spyder depending of what you want/need to do
 $ jupyter notebook
+or
+$ spyder
 
 this should open a chrome (or other internet browser)
 navigate to /unet_4_user/Multi_file_Complete_Analysis_without_gt.ipynb
